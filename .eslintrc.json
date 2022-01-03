@@ -14,6 +14,9 @@
         "no-console": "off",
         "no-unused-vars": "off",
         "camelcase": "off",
-        "new-cap": "off"
+        "new-cap": "off",
+        "max-len": "off",
+        "no-underscore-dangle": "off",
+        "object-curly-newline": "off"
     }
 }
