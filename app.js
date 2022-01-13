@@ -3,18 +3,24 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
+const flash = require('connect-flash');
 require('dotenv').config();
 
 const Product = require('./models/Product');
 const User = require('./models/User');
+const Admin = require('./models/Admin');
 const Cart = require('./models/Cart');
 const Transaction = require('./models/Transaction');
-const productRoutes = require('./routes/productRoutes');
-const googleAuthRoutes = require('./routes/googleAuthRoutes');
-const localAuthRoutes = require('./routes/localAuthRoutes');
-const cartRoutes = require('./routes/cartRoutes');
-const transactionRoutes = require('./routes/transactionRoutes');
-const requireAuthToken = require('./middleware/authMiddleware');
+const adminAuthRoutes = require('./routes/adminAuthRoutes');
+const clientGoogleAuthRoutes = require('./routes/clientGoogleAuthRoutes');
+const clientLocalAuthRoutes = require('./routes/clientLocalAuthRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const clientProductRoutes = require('./routes/clientProductRoutes');
+const clientCartRoutes = require('./routes/clientCartRoutes');
+const clientTransactionRoutes = require('./routes/clientTransactionRoutes');
+const requireClientAuth = require('./middleware/clientAuthMiddleware');
+const { requireAdminAuth, checkAdmin } = require('./middleware/adminAuthMiddleware');
 
 // Port
 const PORT = process.env.port || 5000;
@@ -23,6 +29,12 @@ const PORT = process.env.port || 5000;
 const app = express();
 app.use(express.json()); // Convert request body to json
 app.use(express.urlencoded({ extended: true })); // Convert request body and html post form-data to json
+app.use(express.static(path.join(__dirname, 'public'))); // Set static public folder
+app.use('/sb-admin-2', express.static(path.join(__dirname, 'node_modules/startbootstrap-sb-admin-2'))); // Set static sb-admin-2 node-modules for accesing css
+
+// Views
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
 
 // Cors
 app.use(cors({
@@ -42,6 +54,9 @@ app.use(session({
 // Parsing cookie
 app.use(cookieParser(process.env.secretKey)); // Cookie secret, have to match with session's secret
 
+// Connect-flash
+app.use(flash());
+
 // Connecting to database and start listening
 mongoose.connect(process.env.dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
@@ -53,11 +68,20 @@ mongoose.connect(process.env.dbURI, { useNewUrlParser: true, useUnifiedTopology:
 
 // Routes
 app.get('/', (req, res) => {
-  res.send('Hello');
+  res.redirect('/auth/admin');
 });
+app.use('/admin', requireAdminAuth, checkAdmin, adminRoutes);
+app.use('/auth/google', clientGoogleAuthRoutes);
+app.use('/auth/local', clientLocalAuthRoutes);
+app.use('/auth/admin', adminAuthRoutes);
+app.use('/api/product', clientProductRoutes);
+app.use('/api/cart', requireClientAuth, clientCartRoutes);
+app.use('/api/transaction', requireClientAuth, clientTransactionRoutes);
 
-app.use('/auth/google', googleAuthRoutes);
-app.use('/auth/local', localAuthRoutes);
-app.use('/product', productRoutes);
-app.use('/cart', requireAuthToken, cartRoutes);
-app.use('/transaction', requireAuthToken, transactionRoutes);
+// 404 Page Not Found Route
+app.get('*', (req, res) => {
+  res.render('admin/404/view_404.ejs', {
+    title: 'Page Not Found',
+    userName: res.locals.user.userName,
+  });
+});
