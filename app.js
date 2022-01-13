@@ -23,7 +23,7 @@ const requireClientAuth = require('./middleware/clientAuthMiddleware');
 const { requireAdminAuth, checkAdmin } = require('./middleware/adminAuthMiddleware');
 
 // Port
-const PORT = process.env.port || 5000;
+const PORT = process.env.PORT || 5000;
 
 // Express
 const app = express();
