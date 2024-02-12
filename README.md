@@ -10,7 +10,7 @@ Backend/server side for provide REST API and Admin Dashboard for [**DroneShop Fr
 - [**EJS**](https://ejs.co/)
 - [**MongoDB**](https://www.mongodb.com/)
 - [**Bootstrap**](https://getbootstrap.com/)
-- [**Heroku**](https://www.heroku.com/)
+- [**Vercel**](https://vercel.com/)
 
 ### Library
 - [**express-session**](https://www.npmjs.com/package/express-session) : Session middleware
